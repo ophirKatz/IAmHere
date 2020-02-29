@@ -1,0 +1,37 @@
+@page "/enter/{classCode}"
+
+<div class="contain">
+	<EditForm Model="EnterClassModel" OnValidSubmit="OnInput">
+		<MatTextField Label="Insert Name" @bind-Value="EnterClassModel.Username"/>
+		<MatButton Type="submit" Raised="true">Enter Class Room</MatButton>
+	</EditForm>
+</div>
+
+@code {
+	[Inject] public NavigationManager NavigationManager { get; set; }
+	[Inject] public IAmHere.Blazor.Services.IBrowserSessionHandler SessionHandler { get; set; }
+	[Inject] public IAmHere.Blazor.Services.IClassInfoService ClassInfoService { get; set; }
+
+	[Parameter] public string ClassCode { get; set; }
+
+	private FormModel EnterClassModel = new FormModel();
+
+	public async Task OnInput()
+	{
+		await SessionHandler.RegisterStudentToClass(ClassCode);
+		var classInfo = ClassInfoService.GetClassInfo(ClassCode);
+		if (classInfo == null)
+		{
+			NavigationManager.NavigateTo("/error");
+			return;
+		}
+		classInfo.Students.Add(EnterClassModel.Username);
+		NavigationManager.NavigateTo("/thankyou");
+	}
+
+	public class FormModel
+	{
+		[System.ComponentModel.DataAnnotations.Required]
+    public string Username { get; set; }
+	}
+}

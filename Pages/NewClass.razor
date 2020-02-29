@@ -1,0 +1,28 @@
+@page "/newclass/{classCode}"
+
+<p>Created new class with classCode: @ClassCode</p>
+
+<button class="btn btn-primary" @onclick="RefreshClassMembers">Refresh Class Members</button>
+<p>Class Members:</p>
+@if (ClassInfo != null)
+{
+	<ol>
+		@foreach (var s in ClassInfo.Students)
+		{
+			<li>@s</li>
+		}
+	</ol>
+}
+
+@code {
+	[Inject] public IAmHere.Blazor.Services.IClassInfoService ClassInfoService { get; set; }
+
+	[Parameter] public string ClassCode { get; set; }
+
+	private IAmHere.Blazor.Data.ClassInfo ClassInfo { get; set; }
+
+	private void RefreshClassMembers()
+	{
+		ClassInfo = ClassInfoService.GetClassInfo(ClassCode);
+	}
+}

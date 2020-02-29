@@ -1,0 +1,48 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using IAmHere.Blazor.Services;
+@page "/"
+
+<p>Welcome to IAmHere!</p>
+
+<div class="container">
+	<EditForm Model="CodeModel" OnValidSubmit="OnInput">
+		<MatTextField Label="Insert Class Code" @bind-Value="CodeModel.ClassCode"/>
+		<MatButton Type="submit" Raised="true">Enter Class Room</MatButton>
+	</EditForm>
+</div>
+
+@code {
+	[Inject] public NavigationManager NavigationManager { get; set; }
+	[Inject] public IBrowserSessionHandler SessionHandler { get; set; }
+	[Inject] public IClassInfoService ClassInfoService { get; set; }
+	private FormModel CodeModel = new FormModel();
+
+	public async Task OnInput()
+	{
+		// Check if user already entered classroom (w\ browser session)
+		if (!ClassInfoService.ClassExists(CodeModel.ClassCode))
+		{
+			NavigationManager.NavigateTo($"/noclass/{CodeModel.ClassCode}");
+			return;
+		}
+
+		var result = await SessionHandler.IsStudentRegisteredToClass(CodeModel.ClassCode);
+		if (result)
+		{
+			NavigationManager.NavigateTo("/alreadyentered");
+			return;
+		}
+		
+		NavigationManager.NavigateTo($"/enter/{CodeModel.ClassCode}");
+	}
+
+	public class FormModel
+	{
+		[Required]
+		[MinLength(CodeLength)]
+		[MaxLength(CodeLength)]
+    public string ClassCode { get; set; }
+
+		private const int CodeLength = 6;
+	}
+}
